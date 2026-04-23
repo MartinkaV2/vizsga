@@ -1,21 +1,22 @@
-const STORAGE_KEY = "quiz_files";
+import { db } from "./firebase";
+import {
+  collection,
+  addDoc,
+  getDocs
+} from "firebase/firestore";
 
-export function saveQuiz(name, data) {
-    const quizzes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-    
-    quizzes.push({
-        id: Date.now(),
-        name,
-        data
-    });
-
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(quizzes));
+export async function saveQuiz(name, data) {
+  await addDoc(collection(db, "quizzes"), {
+    name,
+    data
+  });
 }
 
-export function getQuizzes() {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-}
+export async function getQuizzes() {
+  const snapshot = await getDocs(collection(db, "quizzes"));
 
-export function getQuizById(id) {
-    return getQuizzes().find(q => q.id === id);
+  return snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }));
 }

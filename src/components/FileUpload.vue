@@ -27,8 +27,11 @@ function handleFile(e) {
   reader.readAsText(file);
 }
 
-function save() {
-  saveQuiz("Teszt " + new Date().toLocaleString(), jsonData.value);
+async function save() {
+  await saveQuiz(
+    "Teszt " + new Date().toLocaleString(),
+    jsonData.value
+  );
   alert("Mentve!");
 }
 </script>

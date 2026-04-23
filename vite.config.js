@@ -3,5 +3,5 @@ import vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
   plugins: [vue()],
-  base: '/vizsga/' // GitHub Pages miatt
+  base: '/vizsga/' // ⚠️ EZ A REPO NEVE!
 })

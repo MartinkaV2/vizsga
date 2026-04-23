@@ -23,7 +23,7 @@ import { ref, onMounted } from "vue";
 
 const quizzes = ref([]);
 
-onMounted(() => {
-  quizzes.value = getQuizzes();
+onMounted(async () => {
+  quizzes.value = await getQuizzes();
 });
 </script>
