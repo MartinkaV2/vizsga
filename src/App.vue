@@ -1,26 +1,28 @@
 <template>
   <div class="container py-4">
 
-    <FileUpload />
-    <hr />
+    <!-- HA NINCS BETÖLTVE TESZT -->
+    <div v-if="!currentQuiz">
+      <FileUpload />
+      <hr />
+      <SavedTests @load="startQuiz" />
+    </div>
 
-    <SavedTests @load="setQuiz" />
-    <hr />
-
-    <Quiz v-if="currentQuiz" :data="currentQuiz" />
+    <!-- HA VAN TESZT -->
+    <Quiz v-else :data="currentQuiz" @back="currentQuiz = null" />
 
   </div>
 </template>
 
 <script setup>
-import { ref } from "vue";
-import FileUpload from "./components/FileUpload.vue";
-import SavedTests from "./components/SavedTests.vue";
-import Quiz from "./components/Quiz.vue";
+import { ref } from 'vue'
+import FileUpload from './components/FileUpload.vue'
+import SavedTests from './components/SavedTests.vue'
+import Quiz from './components/Quiz.vue'
 
-const currentQuiz = ref(null);
+const currentQuiz = ref(null)
 
-function setQuiz(data) {
-  currentQuiz.value = data;
+function startQuiz(data) {
+  currentQuiz.value = data
 }
 </script>
