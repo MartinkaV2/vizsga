@@ -82,13 +82,29 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 
 const props = defineProps({
   data: Object
 })
 
 const quizData = ref(props.data)
+
+watch(
+  () => props.data,
+  (newVal) => {
+    quizData.value = newVal
+    resetState()
+  }
+)
+
+function resetState() {
+  started.value = false
+  finished.value = false
+  currentIndex.value = 0
+  selected.value = {}
+}
+
 
 const started = ref(false)
 const finished = ref(false)
@@ -98,7 +114,8 @@ const selected = ref({})
 
 // kérdések flatten
 const questions = computed(() => {
-  return quizData.value.sections.flatMap(s => s.questions)
+  if (!quizData.value || !quizData.value.sections) return []
+  return quizData.value.sections.flatMap(s => s.questions || [])
 })
 
 // max pont
@@ -107,7 +124,7 @@ const maxPoints = computed(() => {
 })
 
 const currentQuestion = computed(() => {
-  return questions.value[currentIndex.value]
+  return questions.value[currentIndex.value] || {}
 })
 
 // pontszám
