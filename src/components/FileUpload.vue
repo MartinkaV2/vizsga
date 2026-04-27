@@ -1,7 +1,7 @@
 <template>
   <div class="card p-4">
     <h3>Vizsga feltöltő oldal</h3>
-    <h6>Készítette: Medvecz Martin</h6>
+    <h6>JSON fájlt töltse fel</h6>
 
     <input type="file" @change="handleFile" class="form-control mb-3" />
 
@@ -35,6 +35,5 @@ async function save() {
   );
   alert("Mentve!");
 }
-
 
 </script>
