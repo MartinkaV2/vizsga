@@ -1,6 +1,7 @@
 <template>
   <div class="card p-4">
-    <h3>JSON feltöltés</h3>
+    <h3>Vizsga feltöltő oldal</h3>
+    <h4>Készítette: Medvecz Martin</h4>
 
     <input type="file" @change="handleFile" class="form-control mb-3" />
 
