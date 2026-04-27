@@ -12,22 +12,54 @@
       <p><strong>Kérdések száma:</strong> {{ questions.length }}</p>
       <p><strong>Max pont:</strong> {{ maxPoints }}</p>
 
-      <button @click="startQuiz" class="btn btn-primary">
-        Teszt indítása
-      </button>
+      <div class="d-flex justify-content-center gap-3 flex-wrap">
+        <button @click="startQuiz(false)" class="btn btn-primary">
+          Teszt indítása
+        </button>
 
-      <br><br>
+        <button @click="showTimerModal = true" class="btn btn-warning text-dark">
+          ⏱ Teszt indítása időre
+        </button>
+      </div>
+
+      <br>
 
       <button @click="$emit('back')" class="btn btn-secondary">
         ← Vissza
       </button>
     </div>
 
+    <!-- TIMER INPUT MODAL -->
+    <div v-if="showTimerModal" class="modal-overlay">
+      <div class="modal-box text-center p-4">
+        <h5 class="mb-3">⏱ Időkorlát megadása</h5>
+        <p class="text-muted mb-3">Hány perc álljon rendelkezésre a teszthez?</p>
+        <input
+          v-model.number="timerMinutesInput"
+          type="number"
+          min="1"
+          max="120"
+          class="form-control text-center mb-3"
+          style="width:120px; margin:0 auto;"
+          placeholder="perc"
+        />
+        <div class="d-flex justify-content-center gap-2">
+          <button @click="showTimerModal = false" class="btn btn-secondary">Mégse</button>
+          <button @click="startTimedQuiz" class="btn btn-warning text-dark" :disabled="!timerMinutesInput || timerMinutesInput < 1">
+            Indítás
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- QUIZ -->
     <div v-if="started && !finished">
 
-      <div class="card p-3 mb-3">
+      <div class="card p-3 mb-3 d-flex flex-row justify-content-between align-items-center">
         <strong>{{ currentIndex + 1 }} / {{ questions.length }} kérdés</strong>
+        <div v-if="timerActive" class="timer-display" :class="timerSecondsLeft <= 60 ? 'timer-warning' : ''">
+          ⏱ {{ formattedTime }}
+        </div>
       </div>
 
       <div class="card p-4">
@@ -125,7 +157,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onUnmounted } from 'vue'
 
 const props = defineProps({
   data: Object
@@ -142,6 +174,7 @@ watch(
 )
 
 function resetState() {
+  stopTimer()
   started.value = false
   finished.value = false
   currentIndex.value = 0
@@ -154,6 +187,45 @@ const finished = ref(false)
 
 const currentIndex = ref(0)
 const selected = ref({})
+
+// Timer
+const showTimerModal = ref(false)
+const timerMinutesInput = ref(10)
+const timerActive = ref(false)
+const timerSecondsLeft = ref(0)
+let timerInterval = null
+
+const formattedTime = computed(() => {
+  const m = Math.floor(timerSecondsLeft.value / 60)
+  const s = timerSecondsLeft.value % 60
+  return `${m}:${s.toString().padStart(2, '0')}`
+})
+
+function startTimedQuiz() {
+  showTimerModal.value = false
+  timerSecondsLeft.value = timerMinutesInput.value * 60
+  timerActive.value = true
+  startQuiz(true)
+  timerInterval = setInterval(() => {
+    timerSecondsLeft.value--
+    if (timerSecondsLeft.value <= 0) {
+      clearInterval(timerInterval)
+      timerActive.value = false
+      finished.value = true
+      started.value = false
+    }
+  }, 1000)
+}
+
+function stopTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval)
+    timerInterval = null
+  }
+  timerActive.value = false
+}
+
+onUnmounted(() => stopTimer())
 
 // kérdések flatten
 const questions = computed(() => {
@@ -229,7 +301,7 @@ function getOptionClass(q, opt) {
 
 // ---- methods ----
 
-function startQuiz() {
+function startQuiz(timed = false) {
   started.value = true
 }
 
@@ -241,6 +313,7 @@ function next() {
   if (currentIndex.value < questions.value.length - 1) {
     currentIndex.value++
   } else {
+    stopTimer()
     finished.value = true
     started.value = false
   }
@@ -251,9 +324,51 @@ function prev() {
 }
 
 function restart() {
+  stopTimer()
   started.value = false
   finished.value = false
   currentIndex.value = 0
   selected.value = {}
+  timerMinutesInput.value = 10
 }
 </script>
+<style scoped>
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.modal-box {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  min-width: 300px;
+}
+
+.timer-display {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #198754;
+  background: #d1e7dd;
+  padding: 4px 14px;
+  border-radius: 20px;
+  letter-spacing: 1px;
+  transition: all 0.3s;
+}
+
+.timer-warning {
+  color: #842029;
+  background: #f8d7da;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+</style>
