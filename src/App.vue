@@ -13,13 +13,7 @@
 
   </div>
 
-  <!-- FOOTER -->
-  <footer class="app-footer">
-    <div class="app-footer__inner">
-      <span class="app-footer__sep">·</span>
-      <span class="app-footer__copy">© {{ year }} Minden jog fenntartva. Készítette: Medvecz Martin</span>
-    </div>
-  </footer>
+
 </template>
 
 <script setup>
