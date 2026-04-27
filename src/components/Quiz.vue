@@ -59,23 +59,66 @@
     </div>
 
     <!-- RESULT -->
-    <div v-if="finished" class="text-center">
+    <div v-if="finished">
 
-      <h3>Eredmény</h3>
-
-      <h1>{{ score }} / {{ maxPoints }}</h1>
-
-      <p>{{ percent }}%</p>
+      <!-- Összesített eredmény -->
+      <div class="text-center mb-4">
+        <h3>Eredmény</h3>
+        <h1>{{ score }} / {{ maxPoints }}</h1>
+        <p>{{ percent }}%</p>
+        <div class="d-flex justify-content-center gap-3 mt-2 mb-3">
+          <span class="badge bg-success fs-6">✓ Helyes: {{ correctCount }}</span>
+          <span class="badge bg-danger fs-6">✗ Helytelen: {{ wrongCount }}</span>
+          <span class="badge bg-secondary fs-6">— Kihagyott: {{ skippedCount }}</span>
+        </div>
+      </div>
 
       <hr>
 
-      <button @click="restart" class="btn btn-primary me-2">
-        Újra
-      </button>
+      <!-- Áttekintés -->
+      <h5 class="mb-3">📋 Kérdések áttekintése</h5>
 
-      <button @click="$emit('back')" class="btn btn-secondary">
-        ← Vissza a főoldalra
-      </button>
+      <div
+        v-for="(q, idx) in questions"
+        :key="q.id"
+        class="card mb-3"
+        :class="getQuestionCardClass(q)"
+      >
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span>
+            <strong>{{ idx + 1 }}. kérdés</strong> — {{ q.text }}
+          </span>
+          <span>
+            <span v-if="isCorrect(q)" class="badge bg-success">✓ Helyes</span>
+            <span v-else-if="isSkipped(q)" class="badge bg-secondary">— Kihagyott</span>
+            <span v-else class="badge bg-danger">✗ Helytelen</span>
+          </span>
+        </div>
+
+        <div class="card-body">
+          <div
+            v-for="opt in q.options"
+            :key="opt.id"
+            class="border p-2 mb-2 rounded d-flex align-items-center gap-2"
+            :class="getOptionClass(q, opt)"
+          >
+            <strong>{{ opt.id.toUpperCase() }})</strong> {{ opt.text }}
+            <span v-if="opt.id === q.correct" class="ms-auto">✓ Helyes válasz</span>
+            <span v-else-if="opt.id === selected[q.id] && opt.id !== q.correct" class="ms-auto">✗ Ezt választottad</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center mt-4 mb-4">
+        <button @click="restart" class="btn btn-primary me-2">
+          Újra
+        </button>
+
+        <button @click="$emit('back')" class="btn btn-secondary">
+          ← Vissza a főoldalra
+        </button>
+      </div>
+
     </div>
 
   </div>
@@ -130,19 +173,59 @@ const currentQuestion = computed(() => {
 // pontszám
 const score = computed(() => {
   let s = 0
-
   questions.value.forEach(q => {
     if (selected.value[q.id] === q.correct) {
       s += q.points
     }
   })
-
   return s
 })
 
 const percent = computed(() => {
   return Math.round((score.value / maxPoints.value) * 100)
 })
+
+const correctCount = computed(() => {
+  return questions.value.filter(q => isCorrect(q)).length
+})
+
+const wrongCount = computed(() => {
+  return questions.value.filter(q => !isCorrect(q) && !isSkipped(q)).length
+})
+
+const skippedCount = computed(() => {
+  return questions.value.filter(q => isSkipped(q)).length
+})
+
+// ---- helpers ----
+
+function isCorrect(q) {
+  return selected.value[q.id] === q.correct
+}
+
+function isSkipped(q) {
+  return !selected.value[q.id]
+}
+
+function getQuestionCardClass(q) {
+  if (isCorrect(q)) return 'border-success'
+  if (isSkipped(q)) return 'border-secondary'
+  return 'border-danger'
+}
+
+function getOptionClass(q, opt) {
+  const userAnswer = selected.value[q.id]
+
+  if (opt.id === q.correct) {
+    // mindig zöld a helyes válasz
+    return 'bg-success text-white border-success'
+  }
+  if (opt.id === userAnswer && opt.id !== q.correct) {
+    // piros a rossz választott válasz
+    return 'bg-danger text-white border-danger'
+  }
+  return ''
+}
 
 // ---- methods ----
 
